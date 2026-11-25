@@ -21,7 +21,7 @@
     <b style="color:#7ee081">Natal (ajuda)</b>
     <button onclick="teste('join', 0, 'def')">J - Seguiu (duende minerador, construtor, nivel da mina)</button>
     <button onclick="teste('gift', 1, 'def', 'Rosa')">1 - Rosa (1): duende / mina</button>
-    <button onclick="teste('gift', 1, 'def', 'Rosa branca')">2 - Rosa branca (1): nivel da tropa</button>
+    <button onclick="handleEvent({type:'like',user:'Teste',count:100})">2 - 100 likes: nivel da tropa</button>
     <button onclick="teste('gift', 1, 'def', 'GG')">3 - GG (1): guerreiro ou arqueiro</button>
     <button onclick="teste('gift', 10, 'def', 'Mini dino')">4 - Mini dino (10): TANQUE</button>
     <button onclick="teste('gift', 30, 'def', 'Rosquinha')">5 - Rosquinha (30): combo</button>
@@ -202,10 +202,10 @@ function spawnAranha(row, user) {
 
 // ---------- eventos ----------
 // ---- PRESENTES (edite aqui nomes e valores) ----
-const ROSA_NEED = [0, 5, 8, 12, 16, 20];   // rosas brancas pra subir cada nivel da tropa
+const LIKES_PONTO = 100;                  // likes que valem 1 ponto
+const ROSA_NEED = [0, 10, 15, 20, 30, 40];   // pontos (x100 likes) pra subir cada nivel da tropa
 const PRESENTES = [
   { id: 'trabalhador', nome: 'Rosa',            nomes: ['rosa', 'rose'],                custo: 1,    emoji: '\u{1F339}', desc: 'duende / mina' },
-  { id: 'nivel',       nome: 'Rosa branca',     nomes: ['rosabranca', 'whiterose'],          custo: 1,    emoji: '\u{1F90D}', desc: 'nivel da tropa' },
   { id: 'tropa',       nome: 'GG',              nomes: ['gg', 'bomjogo', 'goodgame'],       custo: 1,    emoji: '\u{1F3AE}', desc: 'guerreiro ou arqueiro' },
   { id: 'tanque',      nome: 'Mini dino',       nomes: ['minidino', 'minidinosaur', 'dino'],            custo: 10,   emoji: '\u{1F996}', desc: 'TANQUE' },
   { id: 'combo',       nome: 'Rosquinha',       nomes: ['rosquinha', 'donut', 'doughnut'],           custo: 30,   emoji: '\u{1F369}', desc: 'reforco + mina turbo' },
@@ -227,11 +227,11 @@ function criarCampeao(user, nivel, avatar) {
   S.campeoes[user] = { nivel: nivel, avatar: avatar || null };
   S.soldiers.push({ user: user, champ: true, cl: nivel, avatar: avatar || null, x: CASTLE_X + 70, y: GY + 10, home: 0, slot: 98, hp: campHp(nivel), maxhp: campHp(nivel), cd: 0, atk: 0, dir: 1, walk: false });
 }
-function subirNivel(user) {
+function subirNivel(user, pts) {
   if (S.level >= MAX_NIVEL_SOLD) return;
-  S.rosaProg++;
+  S.rosaProg += (pts || 1);
   if (S.rosaProg >= ROSA_NEED[S.level]) {
-    S.rosaProg = 0; S.level++;
+    S.rosaProg -= ROSA_NEED[S.level]; S.level++;
     const na = 1 + Math.floor((S.level - 1) / 2);
     const beste = na >= 3 && S.nivelArq < 3;
     S.nivelArq = na;
@@ -276,6 +276,7 @@ function handleEvent(e) {
   const user = e.user || 'Alguem';
   const c = e.coins || 1;
   const av = e.avatar || e.profilePictureUrl || null;
+  if (e.type === 'like') { subirNivel(user, (e.count || 1) / LIKES_PONTO); return; }
   if (e.type === 'join') {
     if (e.team === 'atk') {
       S.joinAtk = (S.joinAtk || 0) + 1;
@@ -324,6 +325,7 @@ function tikProcessar(msg) {
   const user = d.nickname || d.uniqueId || d.userName || 'Alguem';
   const avatar = d.profilePictureUrl || d.profilePicture || d.userProfilePicture || null;
   if (ev === 'follow') { handleEvent({ type: 'join', user: user, avatar: avatar }); return; }
+  if (ev === 'like') { handleEvent({ type: 'like', user: user, count: d.likeCount || d.count || 1 }); return; }
   if (ev === 'gift') {
     if (d.giftType === 1 && d.repeatEnd === false) return;     // sequencia ainda rolando: espera o ultimo evento
     const cnt = d.repeatCount || d.repeat_count || 1, un = d.diamondCount || d.diamond_count || 1;
@@ -405,7 +407,7 @@ document.addEventListener('keydown', ev => {
   const k = ev.key.toLowerCase();
   if (k === 'j') teste('join', 0, 'def');
   if (k === '1') teste('gift', 1, 'def', 'Rosa');
-  if (k === '2') teste('gift', 1, 'def', 'Rosa branca');
+  if (k === '2') handleEvent({ type: 'like', user: 'Teste', count: 100 });
   if (k === '3') teste('gift', 1, 'def', 'GG');
   if (k === '4') teste('gift', 10, 'def', 'Mini dino');
   if (k === '5') teste('gift', 30, 'def', 'Rosquinha');
@@ -1788,7 +1790,7 @@ function desenharHUD() {
   rect(12, 36, 200, 14, 'rgba(0,0,0,0.5)');
   rect(14, 38, 196 * Math.min(1, S.rosaProg / meta), 10, '#9b59b6');
   ctx.font = 'bold 11px Arial'; ctx.fillStyle = '#fff';
-  ctx.fillText(S.level >= MAX_NIVEL_SOLD ? 'TROPA NIVEL MAX' : 'TROPA NIVEL ' + S.level + ' > ' + (S.level + 1) + '  rosa branca ' + S.rosaProg + '/' + meta, 18, 47);
+  ctx.fillText(S.level >= MAX_NIVEL_SOLD ? 'TROPA NIVEL MAX' : 'TROPA NIVEL ' + S.level + ' > ' + (S.level + 1) + '  likes ' + Math.floor(S.rosaProg * LIKES_PONTO) + '/' + (meta * LIKES_PONTO), 18, 47);
   rect(12, 866, 168, 16, 'rgba(0,0,0,0.55)');
   rect(14, 868, 164 * (S.minaNivel >= MINA_NIVEL_MAX ? 1 : S.progMina / MINA_NEED[S.minaNivel]), 12, '#f1c40f');
   ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'left';
@@ -1824,6 +1826,7 @@ function desenharHUD() {
   // legenda dos presentes (faixa de baixo)
   if (LEG_ON) {
     const LG = PRESENTES.map(p => [p.emoji + ' ' + p.nome, p.custo + ' = ' + p.desc, 0]);
+    LG.unshift(['\u2764\uFE0F Likes', LIKES_PONTO + ' = 1 pt: NIVEL TROPA', 0]);
     LG.push([PRESENTE_GRINCH.emoji + ' ' + PRESENTE_GRINCH.nome, PRESENTE_GRINCH.custo + ' = ' + PRESENTE_GRINCH.desc, 1]);
     rect(0, 886, W, 74, 'rgba(0,0,0,0.72)');
     ctx.textAlign = 'left';
