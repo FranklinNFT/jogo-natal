@@ -55,7 +55,7 @@ const NOME_D = 'Natal', NOME_A = 'Grinch';
 const SHAFT_X = 96;                     // poco do elevador (dentro do castelo)
 const DROP_X = 100;                     // onde o mineiro larga o minerio
 const TREE_X = 340, STONE_X = 376, BHOME = 310;   // madeira, pedra e casa dos construtores
-const CTR = { x: 14, y: 58, w: 206, h: 56 };      // contador de ouro (HUD)
+const CTR = { x: 14, y: 102, w: 206, h: 56 };      // contador de ouro (HUD)
 
 const HOLE_X = 420;
 let LEG_ON = true;
@@ -314,7 +314,7 @@ function teste(tipo, moedas, team, nome) {
   handleEvent({ type: tipo, user: user, coins: moedas, team: team, gift: nome, sub: Math.random() < 0.3 });
 }
 
-if (window.obsstudio && !/painel=1/.test(location.search)) { const pn0 = document.getElementById('painel'); if (pn0) pn0.style.display = 'none'; }
+if (!/painel=1/.test(location.search)) { const pn0 = document.getElementById('painel'); if (pn0) pn0.style.display = 'none'; }
 // ---- TIKFINITY: recebe os eventos do app TikFinity (ws://127.0.0.1:21213) ----
 const TIK = { ok: false, ultimo: [], debug: false, url: 'ws://127.0.0.1:21213/' };
 function tikProcessar(msg) {
@@ -1161,7 +1161,7 @@ function desenharCenario() {
     rect(sx, sy, 2, 2, '#fff');
   }
   ctx.globalAlpha = 1;
-  circ(450, 120, 26, '#fff8e1'); circ(440, 112, 5, '#f0e6c8'); circ(458, 130, 4, '#f0e6c8');
+  circ(450, 165, 26, '#fff8e1'); circ(440, 157, 5, '#f0e6c8'); circ(458, 175, 4, '#f0e6c8');
   // montanhas nevadas com parallax
   const off = -((S.camX * 0.35) % 540);
   for (let k = 0; k < 3; k++) {
@@ -1779,6 +1779,7 @@ function DRAGAO_DRAW() {
 function desenharHUD() {
   desenharLuzinhas();
   ctx.textAlign = 'left';
+  ctx.save(); ctx.translate(0, 44);
   rect(12, 12, 200, 16, 'rgba(0,0,0,0.5)');
   rect(14, 14, 196 * Math.max(0, S.hp / 100), 12, S.hp > 40 ? '#2ecc71' : '#e74c3c');
   ctx.font = 'bold 12px Arial'; ctx.fillStyle = '#fff'; ctx.fillText('OFICINA', 18, 25);
@@ -1791,10 +1792,11 @@ function desenharHUD() {
   rect(14, 38, 196 * Math.min(1, S.rosaProg / meta), 10, '#9b59b6');
   ctx.font = 'bold 11px Arial'; ctx.fillStyle = '#fff';
   ctx.fillText(S.level >= MAX_NIVEL_SOLD ? 'TROPA NIVEL MAX' : 'TROPA NIVEL ' + S.level + ' > ' + (S.level + 1) + '  likes ' + Math.floor(S.rosaProg * LIKES_PONTO) + '/' + (meta * LIKES_PONTO), 18, 47);
-  rect(12, 866, 168, 16, 'rgba(0,0,0,0.55)');
-  rect(14, 868, 164 * (S.minaNivel >= MINA_NIVEL_MAX ? 1 : S.progMina / MINA_NEED[S.minaNivel]), 12, '#f1c40f');
+  ctx.restore();
+  rect(12, 314, 168, 16, 'rgba(0,0,0,0.55)');
+  rect(14, 316, 164 * (S.minaNivel >= MINA_NIVEL_MAX ? 1 : S.progMina / MINA_NEED[S.minaNivel]), 12, '#f1c40f');
   ctx.fillStyle = '#fff'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'left';
-  ctx.fillText(S.minaNivel >= MINA_NIVEL_MAX ? 'TRABALHADORES MAX' : 'TRABALHADORES NIVEL ' + S.minaNivel + '  >  ' + (S.minaNivel + 1), 18, 879);
+  ctx.fillText(S.minaNivel >= MINA_NIVEL_MAX ? 'TRABALHADORES MAX' : 'TRABALHADORES NIVEL ' + S.minaNivel + '  >  ' + (S.minaNivel + 1), 18, 327);
 
   // minimapa da estrada: castelo ... portal
   const mx0 = 14, mx1 = W - 14, mw = mx1 - mx0, my = 204;
@@ -1828,9 +1830,9 @@ function desenharHUD() {
     const LG = PRESENTES.map(p => [p.emoji + ' ' + p.nome, p.custo + ' = ' + p.desc, 0]);
     LG.unshift(['\u2764\uFE0F Likes', LIKES_PONTO + ' = 1 pt: NIVEL TROPA', 0]);
     LG.push([PRESENTE_GRINCH.emoji + ' ' + PRESENTE_GRINCH.nome, PRESENTE_GRINCH.custo + ' = ' + PRESENTE_GRINCH.desc, 1]);
-    rect(0, 886, W, 74, 'rgba(0,0,0,0.72)');
+    rect(0, 234, W, 74, 'rgba(0,0,0,0.6)');
     ctx.textAlign = 'left';
-    LG.forEach((l, i) => { const cx = (i % 4) * 135 + 6, cy = 886 + Math.floor(i / 4) * 36;
+    LG.forEach((l, i) => { const cx = (i % 4) * 135 + 6, cy = 234 + Math.floor(i / 4) * 36;
       ctx.font = 'bold 12px Arial'; ctx.fillStyle = l[2] ? '#ff8a80' : '#ffffff'; ctx.fillText(l[0], cx, cy + 16);
       ctx.font = 'bold 10px Arial'; ctx.fillStyle = l[2] ? '#ffb3ad' : '#ffe9a8'; ctx.fillText(l[1], cx, cy + 30); });
   }
@@ -1842,16 +1844,16 @@ function desenharHUD() {
   const P = S.placar;
   const tD = topo(S.scoresD), tA = topo(S.scoresA);
   const L = [['RECORDE  Fase ' + P.rf + '  Onda ' + P.rw + (P.rd !== '-' ? '  - ' + P.rd : ''), '#ffd166'], ['TOP NATAL: ' + tD[0] + ' (' + tD[1] + ' moedas)', '#7ee081'], ['TOP GRINCH: ' + tA[0] + ' (' + tA[1] + ' moedas)', '#ff8a80']];
-  L.forEach((l, i) => { ctx.font = (i === 0 ? 'bold 14px' : 'bold 12px') + ' Arial'; ctx.fillStyle = l[1]; ctx.strokeText(l[0], W - 12, 50 + i * 17); ctx.fillText(l[0], W - 12, 50 + i * 17); });
+  L.forEach((l, i) => { ctx.font = (i === 0 ? 'bold 14px' : 'bold 12px') + ' Arial'; ctx.fillStyle = l[1]; ctx.strokeText(l[0], W - 12, 96 + i * 17); ctx.fillText(l[0], W - 12, 96 + i * 17); });
 
   ctx.textAlign = 'right'; ctx.font = 'bold 11px Arial'; ctx.fillStyle = '#fff';
-  ctx.fillText('Duendes ' + S.miners.length + '/' + MAX_MINEIROS + '  Constr. ' + S.builders.length + '/' + MAX_CONSTR + '  Guerreiros ' + S.soldiers.filter(q => !q.tank && !q.champ).length + '  Arqueiros ' + S.archers.length + (S.rush > 0 ? '  TURBO!' : ''), W - 10, 879);
+  ctx.fillText('Duendes ' + S.miners.length + '/' + MAX_MINEIROS + '  Constr. ' + S.builders.length + '/' + MAX_CONSTR + '  Guerreiros ' + S.soldiers.filter(q => !q.tank && !q.champ).length + '  Arqueiros ' + S.archers.length + (S.rush > 0 ? '  TURBO!' : ''), W - 10, 327);
 
   if (S.msgT > 0) {
     ctx.textAlign = 'center'; ctx.font = 'bold 22px Arial';
     ctx.globalAlpha = Math.min(1, S.msgT);
-    ctx.strokeStyle = '#000'; ctx.lineWidth = 5; ctx.strokeText(S.msg, W / 2, 262);
-    ctx.fillStyle = S.msgC; ctx.fillText(S.msg, W / 2, 262);
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 5; ctx.strokeText(S.msg, W / 2, 356);
+    ctx.fillStyle = S.msgC; ctx.fillText(S.msg, W / 2, 356);
     ctx.globalAlpha = 1;
   }
   if (S.faseT > 0 && S.dead <= 0) {
